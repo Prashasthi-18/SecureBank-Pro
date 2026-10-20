@@ -355,3 +355,11 @@ securebank-pro/
 - Email alerts for sign-ins from new devices
 - Scheduled and recurring transfers
 - Light mode
+
+---
+
+## Author
+
+Built by **Prashasthi** · [github.com/Prashasthi-18](https://github.com/Prashasthi-18)
+
+If you have questions or ideas, feel free to [open an issue](https://github.com/Prashasthi-18/SecureBank-Pro/issues).
