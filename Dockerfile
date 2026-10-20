@@ -18,7 +18,9 @@ COPY --chown=bank:bank run.py .
 
 USER bank
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/login')" || exit 1
+ENV PORT=8000
+HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/login')" || exit 1
 
 # One worker keeps the in-memory rate limiter consistent; threads handle concurrency.
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "8", "--access-logfile", "-", "run:app"]
+# PORT is injected by hosts such as Render; defaults to 8000 for docker compose.
+CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 8 --access-logfile - run:app"]

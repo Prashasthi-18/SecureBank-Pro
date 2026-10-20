@@ -13,6 +13,8 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Strict"
     SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
+    # Set true only behind a single trusted reverse proxy (e.g. Render) so client IPs come from X-Forwarded-For
+    BEHIND_PROXY = os.environ.get("BEHIND_PROXY", "false").lower() == "true"
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(os.environ.get("SESSION_MINUTES", "15")))
     IDLE_TIMEOUT_SECONDS = int(os.environ.get("IDLE_TIMEOUT_SECONDS", "600"))
 

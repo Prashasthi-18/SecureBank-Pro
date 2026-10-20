@@ -23,6 +23,12 @@ docker compose up --build                                # http://localhost:8000
 
 The container runs as a non-root user with a read-only filesystem, all Linux capabilities dropped and `no-new-privileges`. The database lives in a named volume.
 
+## Deploy to Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Prashasthi-18/SecureBank-Pro)
+
+`render.yaml` defines the service: it builds the Dockerfile, generates `SECRET_KEY`, turns on secure cookies, HSTS and proxy-aware client IPs, and asks you for `ADMIN_PASSWORD` (leave it blank to skip the admin account). On the free plan the SQLite database lives inside the container, so accounts reset whenever the service restarts or redeploys. For lasting data, switch to a paid plan and attach a disk mounted at `/data`.
+
 ## Tests
 
 ```bash
