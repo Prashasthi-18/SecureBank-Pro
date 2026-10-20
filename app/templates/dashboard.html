@@ -2,58 +2,164 @@
 {% block title %}Overview · SecureBank Pro{% endblock %}
 {% block body_class %}page-app{% endblock %}
 {% block content %}
+{% set first = g.user.full_name.split()[0] %}
+{% set checking = accounts|selectattr('kind', 'equalto', 'checking')|first %}
+{% set savings = accounts|selectattr('kind', 'equalto', 'savings')|first %}
+{% set has_sent = activity|selectattr('sign', 'lt', 0)|list|length > 0 %}
+{% set has_moved = activity|selectattr('sign', 'equalto', 0)|list|length > 0 %}
+
 {% if intro %}
 <div class="intro" data-intro aria-hidden="true">
-  {% with vault_class='vault-intro' %}{% include "_vault.html" %}{% endwith %}
+  <div class="intro-lock">
+    <svg viewBox="0 0 120 140">
+      <path class="lock-shackle" d="M34 62V42a26 26 0 0 1 52 0v20"/>
+      <rect class="lock-body" x="16" y="60" width="88" height="70" rx="18"/>
+      <path class="intro-tick" d="m42 95 12 12 24-26"/>
+    </svg>
+  </div>
+  <p class="intro-text">Welcome back, {{ first }}</p>
 </div>
 {% endif %}
 
-<section class="overview">
-  <div class="overview-head">
-    <p class="greet">Good to see you, {{ g.user.full_name.split()[0] }}.</p>
-    <p class="total-label">Total across your accounts</p>
-    <p class="total odometer" data-odometer="{{ total }}" aria-label="{{ money(total) }}">{{ money(total) }}</p>
-    <svg class="spark" data-history="{{ history }}" viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label="Balance trend over your recent activity"></svg>
-  </div>
-
-  <div class="cards">
-    {% for a in accounts %}
-    <article class="bank-card tilt {{ 'bank-card-' ~ a.kind }}">
-      <div class="shine" aria-hidden="true"></div>
-      <header><span class="chip" aria-hidden="true"></span><span class="kind">{{ a.kind|capitalize }}</span></header>
-      <p class="card-balance odometer" data-odometer="{{ a.balance_cents }}">{{ money(a.balance_cents) }}</p>
-      <footer>
-        <span class="acct">{{ a.account_number[:2] }} {{ a.account_number[2:6] }} {{ a.account_number[6:] }}</span>
-        <button class="copy" type="button" data-copy="{{ a.account_number }}">Copy number</button>
-      </footer>
-    </article>
-    {% endfor %}
-  </div>
-</section>
-
-<section class="split">
-  <div class="panel">
-    <div class="panel-head">
-      <h2>Recent activity</h2>
-      <a href="{{ url_for('bank.activity') }}">See all</a>
+<section class="dash">
+  <header class="dash-head">
+    <div>
+      <p class="eyebrow" data-greet>Overview</p>
+      <h1>Hi {{ first }}, here's your money</h1>
     </div>
-    {% if activity %}
-    <ul class="tx-list stagger">
-      {% for tx in activity %}{% include "_activity_row.html" %}{% endfor %}
-    </ul>
-    {% else %}
-    <p class="empty">No activity yet. <a href="{{ url_for('bank.transfer') }}">Send your first transfer</a>.</p>
-    {% endif %}
+    <div class="quick-actions" data-tour="actions"
+         data-tour-title="Quick actions" data-tour-text="Send money to someone, move money into savings, or copy your account number so friends can pay you.">
+      <a class="qa qa-primary magnetic" href="{{ url_for('bank.transfer') }}">
+        <span class="qa-ico"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg></span>Send money</a>
+      {% if savings %}
+      <a class="qa" href="{{ url_for('bank.transfer', to=savings.account_number) }}">
+        <span class="qa-ico"><svg class="i" aria-hidden="true"><use href="#i-piggy"/></svg></span>Move to savings</a>
+      {% endif %}
+      {% if checking %}
+      <button class="qa" type="button" data-copy="{{ checking.account_number }}" data-copy-label="Copied!">
+        <span class="qa-ico"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg></span><span data-copy-text>Copy my number</span></button>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if not (has_sent and has_moved) %}
+  <section class="panel onboard" data-onboard aria-labelledby="onboard-title">
+    <div class="onboard-head">
+      <div class="ring-progress" data-onboard-ring aria-hidden="true">
+        <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="track"/><circle cx="22" cy="22" r="18" class="fill"/></svg>
+        <span data-onboard-count>1/4</span>
+      </div>
+      <div>
+        <h2 id="onboard-title">Get started with SecureBank</h2>
+        <p class="muted">Four quick steps to learn your way around.</p>
+      </div>
+      <div class="onboard-tools">
+        <button class="btn btn-ghost btn-sm" type="button" data-tour-start>
+          <svg class="i" aria-hidden="true"><use href="#i-sparkle"/></svg>Take a 30-second tour</button>
+        <button class="icon-btn" type="button" data-onboard-hide aria-label="Hide getting started">
+          <svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
+      </div>
+    </div>
+    <ol class="checklist">
+      <li class="is-done" data-step>
+        <span class="check"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span>
+        <span><strong>Open your account</strong><small>Done! 5,000.00 is in your checking.</small></span>
+      </li>
+      <li data-step data-step-copy>
+        <span class="check"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span>
+        <span><strong>Copy your account number</strong><small>Share it so people can pay you.</small></span>
+        {% if checking %}<button class="btn btn-ghost btn-sm" type="button" data-copy="{{ checking.account_number }}" data-copy-label="Copied!"><span data-copy-text>Copy</span></button>{% endif %}
+      </li>
+      <li class="{{ 'is-done' if has_moved }}" data-step>
+        <span class="check"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span>
+        <span><strong>Move money into savings</strong><small>Practise a transfer between your own accounts.</small></span>
+        {% if savings and not has_moved %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.transfer', to=savings.account_number) }}">Try it</a>{% endif %}
+      </li>
+      <li class="{{ 'is-done' if has_sent }}" data-step>
+        <span class="check"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span>
+        <span><strong>Send money to someone</strong><small>You'll need their SB account number.</small></span>
+        {% if not has_sent %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.transfer') }}">Send</a>{% endif %}
+      </li>
+    </ol>
+  </section>
+  {% endif %}
+
+  <div class="dash-grid">
+    <article class="panel balance-panel" data-tour="balance"
+             data-tour-title="Your total balance" data-tour-text="Everything you hold across checking and savings. The chart shows how it changed over your recent activity. Hover to see each point.">
+      <div class="balance-top">
+        <div>
+          <p class="label">Total balance</p>
+          <p class="total odometer" data-odometer="{{ total }}" aria-label="{{ money(total) }}">{{ money(total) }}</p>
+          <p class="delta" data-delta hidden></p>
+        </div>
+        <span class="pill pill-green"><span class="live-dot"></span>Protected</span>
+      </div>
+      <div class="chart-wrap">
+        <svg class="spark" data-history="{{ history }}" viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label="Balance trend over your recent activity"></svg>
+        <div class="chart-tip" data-chart-tip hidden></div>
+      </div>
+    </article>
+
+    <div class="cards" data-tour="cards"
+         data-tour-title="Your accounts" data-tour-text="Checking is for everyday payments. Savings is for money you want to set aside. Copy a number to share it.">
+      {% for a in accounts %}
+      <article class="bank-card tilt bank-card-{{ a.kind }}">
+        <div class="shine" aria-hidden="true"></div>
+        <header>
+          <span class="chip" aria-hidden="true"></span>
+          <span class="kind"><svg class="i" aria-hidden="true"><use href="#{{ 'i-piggy' if a.kind == 'savings' else 'i-home' }}"/></svg>{{ a.kind|capitalize }}</span>
+        </header>
+        <p class="card-label">Available</p>
+        <p class="card-balance odometer" data-odometer="{{ a.balance_cents }}">{{ money(a.balance_cents) }}</p>
+        <footer>
+          <span class="acct">{{ a.account_number[:2] }} {{ a.account_number[2:6] }} {{ a.account_number[6:] }}</span>
+          <button class="copy" type="button" data-copy="{{ a.account_number }}" data-copy-label="Copied" aria-label="Copy {{ a.kind }} account number">
+            <svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span data-copy-text>Copy</span></button>
+        </footer>
+      </article>
+      {% endfor %}
+    </div>
   </div>
-  <aside class="panel quick">
-    <h2>Move money</h2>
-    <p class="muted">Send to anyone with a SecureBank number, or shift money into savings.</p>
-    <a class="btn btn-brass btn-block magnetic" href="{{ url_for('bank.transfer') }}">Send money</a>
-    <dl class="limits">
-      <div><dt>Per transfer</dt><dd>{{ money(config.MAX_TRANSFER_CENTS) }}</dd></div>
-      <div><dt>Per day, to others</dt><dd>{{ money(config.DAILY_TRANSFER_LIMIT_CENTS) }}</dd></div>
-      <div><dt>Last sign-in</dt><dd>{{ (g.user.last_login_at or '')[:16]|replace('T', ' ') }} UTC</dd></div>
-    </dl>
-  </aside>
+
+  <div class="split">
+    <section class="panel" data-tour="activity"
+             data-tour-title="Recent activity" data-tour-text="Every payment in and out. Click any row to open its receipt.">
+      <div class="panel-head">
+        <h2>Recent activity</h2>
+        <a class="link-arrow" href="{{ url_for('bank.activity') }}">See all <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+      {% if activity %}
+      <ul class="tx-list stagger">
+        {% for tx in activity %}{% include "_activity_row.html" %}{% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty">
+        <svg class="i" aria-hidden="true"><use href="#i-list"/></svg>
+        <p>No activity yet.</p>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('bank.transfer') }}">Send your first transfer</a>
+      </div>
+      {% endif %}
+    </section>
+
+    <aside class="panel side" data-tour="limits"
+           data-tour-title="Limits & security" data-tour-text="Your transfer limits, and the ring at the top shows when you'll be signed out automatically if you're idle.">
+      <h2>Limits &amp; security</h2>
+      <dl class="limits">
+        <div><dt><svg class="i" aria-hidden="true"><use href="#i-bolt"/></svg>Per transfer</dt><dd>{{ money(config.MAX_TRANSFER_CENTS) }}</dd></div>
+        <div><dt><svg class="i" aria-hidden="true"><use href="#i-users"/></svg>Per day, to others</dt><dd>{{ money(config.DAILY_TRANSFER_LIMIT_CENTS) }}</dd></div>
+        <div><dt><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg>Last sign-in</dt><dd>{{ (g.user.last_login_at or '')[:16]|replace('T', ' ') }} UTC</dd></div>
+      </dl>
+      <div class="security-meter">
+        <div class="sm-head"><span>Account protection</span><strong>Strong</strong></div>
+        <div class="sm-bar"><i></i></div>
+        <ul class="sm-list">
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Strong password set</li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Session auto-locks when idle</li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Hold-to-send confirmation on</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
 </section>
 {% endblock %}

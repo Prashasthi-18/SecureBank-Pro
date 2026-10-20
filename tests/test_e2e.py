@@ -62,8 +62,8 @@ def open_account(page, base_url, username, name):
 def sign_in(page, base_url, username):
     page.goto(f"{base_url}/login")
     page.get_by_label("Username").fill(username)
-    page.get_by_label("Password").fill(PASSWORD)
-    page.get_by_role("button", name="Unlock vault").click()
+    page.get_by_label("Password", exact=True).fill(PASSWORD)
+    page.get_by_role("button", name="Sign in").click()
     page.wait_for_url(re.compile(r"/dashboard$"))
 
 
@@ -97,6 +97,7 @@ def test_hold_to_send_transfer_end_to_end(page, browser, base_url):
     assert "/transfer" in page.url
 
     # A one-second hold does
+    page.locator("[data-hold]").scroll_into_view_if_needed()
     box = page.locator("[data-hold]").bounding_box()
     page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     page.mouse.down()
@@ -111,7 +112,24 @@ def test_wrong_password_shows_error_and_stays_on_login(page, base_url):
     open_account(page, base_url, "gina", "Gina Park")
     page.goto(f"{base_url}/login")
     page.get_by_label("Username").fill("gina")
-    page.get_by_label("Password").fill("Wrong-Pass-000!")
-    page.get_by_role("button", name="Unlock vault").click()
+    page.get_by_label("Password", exact=True).fill("Wrong-Pass-000!")
+    page.get_by_role("button", name="Sign in").click()
     page.wait_for_load_state()
     expect(page.get_by_role("alert")).to_have_text("Username or password is incorrect.")
+
+
+def test_move_to_savings_shortcut(page, base_url):
+    open_account(page, base_url, "hana", "Hana Lee")
+    sign_in(page, base_url, "hana")
+    page.get_by_role("link", name="Move to savings").click()
+    page.wait_for_url(re.compile(r"/transfer\?to=SB\d{10}$"))
+    expect(page.locator("[data-lookup-result]")).to_contain_text("(yours)")
+    page.get_by_label("Amount").fill("75")
+    page.locator("[data-hold]").scroll_into_view_if_needed()
+    box = page.locator("[data-hold]").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.down()
+    page.wait_for_url(re.compile(r"/transfers/\d+$"), timeout=4000)
+    page.mouse.up()
+    expect(page.get_by_role("heading", name="Moved")).to_be_visible()
+    assert page.csp_violations == []

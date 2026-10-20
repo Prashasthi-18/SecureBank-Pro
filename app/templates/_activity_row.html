@@ -1,7 +1,8 @@
 <li class="tx {{ 'tx-in' if tx.sign > 0 else ('tx-out' if tx.sign < 0 else 'tx-move') }}">
   <a href="{{ url_for('bank.receipt', tx_id=tx.id) }}">
-    <span class="tx-icon" aria-hidden="true"></span>
-    <span class="tx-main"><strong>{{ tx.title }}</strong><small>{{ tx.memo or 'No note' }} · {{ tx.created_at[:16] }} UTC</small></span>
+    <span class="tx-icon" aria-hidden="true"><svg class="i"><use href="#{{ 'i-gift' if tx.title == 'Deposit' else ('i-in' if tx.sign > 0 else ('i-out' if tx.sign < 0 else 'i-swap')) }}"/></svg></span>
+    <span class="tx-main"><strong>{{ tx.title }}</strong><small>{{ tx.memo or 'No note' }} · {{ tx.created_at[:16]|replace('T', ' ') }} UTC</small></span>
     <span class="tx-amount">{{ '+' if tx.sign > 0 else ('−' if tx.sign < 0 else '') }}{{ money(tx.amount_cents) }}</span>
+    <svg class="i tx-chev" aria-hidden="true"><use href="#i-arrow"/></svg>
   </a>
 </li>

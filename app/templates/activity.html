@@ -3,15 +3,32 @@
 {% block body_class %}page-app{% endblock %}
 {% block content %}
 <section class="panel narrow">
-  <div class="panel-head"><h1>Activity</h1><span class="muted">Page {{ page }}</span></div>
+  <div class="panel-head">
+    <div>
+      <h1>Activity</h1>
+      <p class="muted">Every payment in and out of your accounts. Select one to see its receipt.</p>
+    </div>
+    <span class="pill">Page {{ page }}</span>
+  </div>
   {% if items %}
-  <ul class="tx-list stagger">{% for tx in items %}{% include "_activity_row.html" %}{% endfor %}</ul>
+  <div class="filters" role="group" aria-label="Filter activity" data-filters>
+    <button type="button" class="chip-btn is-on" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" class="chip-btn" data-filter="tx-in" aria-pressed="false">Money in</button>
+    <button type="button" class="chip-btn" data-filter="tx-out" aria-pressed="false">Money out</button>
+    <button type="button" class="chip-btn" data-filter="tx-move" aria-pressed="false">Between my accounts</button>
+  </div>
+  <ul class="tx-list stagger" data-tx-list>{% for tx in items %}{% include "_activity_row.html" %}{% endfor %}</ul>
+  <p class="empty-filter muted" data-filter-empty hidden>Nothing of that type on this page.</p>
   {% else %}
-  <p class="empty">Nothing on this page. <a href="{{ url_for('bank.activity') }}">Back to the latest</a>.</p>
+  <div class="empty">
+    <svg class="i" aria-hidden="true"><use href="#i-list"/></svg>
+    <p>Nothing on this page.</p>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('bank.activity') }}">Back to the latest</a>
+  </div>
   {% endif %}
   <nav class="pager" aria-label="Pages">
-    {% if page > 1 %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.activity', page=page-1) }}">Newer</a>{% endif %}
-    {% if has_next %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.activity', page=page+1) }}">Older</a>{% endif %}
+    {% if page > 1 %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.activity', page=page-1) }}">← Newer</a>{% endif %}
+    {% if has_next %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.activity', page=page+1) }}">Older →</a>{% endif %}
   </nav>
 </section>
 {% endblock %}

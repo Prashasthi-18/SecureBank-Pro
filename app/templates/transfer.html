@@ -2,62 +2,115 @@
 {% block title %}Send money · SecureBank Pro{% endblock %}
 {% block body_class %}page-app{% endblock %}
 {% block content %}
+{% set to_value = form.to_account or request.args.get('to', '') %}
 <section class="transfer">
   <form class="panel transfer-form" method="post" novalidate data-transfer data-lookup="{{ url_for('bank.lookup') }}">
-    <h1>Send money</h1>
+    <div class="form-head">
+      <h1>Send money</h1>
+      <p class="muted">Three quick steps. You'll see who you're paying before anything moves.</p>
+    </div>
     {% if errors.form %}<p class="form-error" role="alert">{{ errors.form }}</p>{% endif %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
 
-    <fieldset class="field {{ 'has-error' if errors.from_account }}">
-      <legend>From</legend>
+    <fieldset class="tstep {{ 'has-error' if errors.from_account }}" data-tstep="from">
+      <legend><span class="tstep-num">1</span>Send from</legend>
       <div class="source-pick">
         {% for a in accounts %}
         <label class="source">
-          <input type="radio" name="from_account" value="{{ a.id }}" data-balance="{{ a.balance_cents }}" data-kind="{{ a.kind }}"
+          <input type="radio" name="from_account" value="{{ a.id }}" data-balance="{{ a.balance_cents }}" data-kind="{{ a.kind }}" data-number="{{ a.account_number }}"
                  {{ 'checked' if (form.from_account == a.id|string) or (not form.from_account and loop.first) }}>
-          <span><strong>{{ a.kind|capitalize }}</strong><small>{{ money(a.balance_cents) }} available</small></span>
+          <span class="source-body">
+            <span class="source-ico"><svg class="i" aria-hidden="true"><use href="#{{ 'i-piggy' if a.kind == 'savings' else 'i-home' }}"/></svg></span>
+            <span><strong>{{ a.kind|capitalize }}</strong><small>{{ money(a.balance_cents) }} available</small></span>
+            <span class="source-tick" aria-hidden="true"><svg class="i"><use href="#i-check"/></svg></span>
+          </span>
         </label>
         {% endfor %}
       </div>
       {% if errors.from_account %}<small class="field-error">{{ errors.from_account }}</small>{% endif %}
     </fieldset>
 
-    <label class="field {{ 'has-error' if errors.to_account }}">
-      <span>To account number</span>
-      <input name="to_account" placeholder="SB0123456789" maxlength="12" autocomplete="off" spellcheck="false"
-             value="{{ form.to_account }}" required data-to>
-      <small class="lookup-result" data-lookup-result aria-live="polite"></small>
-      {% if errors.to_account %}<small class="field-error">{{ errors.to_account }}</small>{% endif %}
-    </label>
+    <fieldset class="tstep {{ 'has-error' if errors.to_account }}" data-tstep="to">
+      <legend><span class="tstep-num">2</span>Send to</legend>
+      <div class="field">
+        <label for="tf-to">To account number</label>
+        <div class="input-wrap">
+          <svg class="i input-ico" aria-hidden="true"><use href="#i-user"/></svg>
+          <input id="tf-to" name="to_account" placeholder="SB0123456789" maxlength="12" autocomplete="off" spellcheck="false"
+                 value="{{ to_value }}" required data-to aria-describedby="tf-to-hint">
+        </div>
+        <small class="lookup-result" data-lookup-result aria-live="polite"></small>
+        {% if errors.to_account %}<small class="field-error">{{ errors.to_account }}</small>
+        {% else %}<small class="hint" id="tf-to-hint">Ask the person for their 12-character number. It starts with SB.</small>{% endif %}
+      </div>
+      <div class="quick-fill">
+        <span class="muted small">Or move between your own accounts:</span>
+        {% for a in accounts %}
+        <button type="button" class="chip-btn" data-fill="{{ a.account_number }}">
+          <svg class="i" aria-hidden="true"><use href="#{{ 'i-piggy' if a.kind == 'savings' else 'i-home' }}"/></svg>My {{ a.kind }}</button>
+        {% endfor %}
+      </div>
+    </fieldset>
 
-    <label class="field {{ 'has-error' if errors.amount }}">
-      <span>Amount</span>
-      <input name="amount" inputmode="decimal" placeholder="0.00" maxlength="13" autocomplete="off"
-             value="{{ form.amount }}" required data-amount>
-      {% if errors.amount %}<small class="field-error">{{ errors.amount }}</small>{% endif %}
-    </label>
+    <fieldset class="tstep {{ 'has-error' if errors.amount or errors.memo }}" data-tstep="amount">
+      <legend><span class="tstep-num">3</span>How much</legend>
+      <div class="field">
+        <label for="tf-amount">Amount</label>
+        <div class="input-wrap input-money">
+          <input id="tf-amount" name="amount" inputmode="decimal" placeholder="0.00" maxlength="13" autocomplete="off"
+                 value="{{ form.amount }}" required data-amount>
+        </div>
+        <small class="hint amount-hint" data-amount-hint>Up to {{ money(config.MAX_TRANSFER_CENTS) }} per transfer.</small>
+        {% if errors.amount %}<small class="field-error">{{ errors.amount }}</small>{% endif %}
+      </div>
+      <div class="quick-fill" role="group" aria-label="Quick picks">
+        {% for v in [20, 50, 100, 250, 500] %}
+        <button type="button" class="chip-btn" data-amount-set="{{ v }}">{{ v }}</button>
+        {% endfor %}
+      </div>
+      <div class="field">
+        <label for="tf-memo">Note for the recipient <em>(optional)</em></label>
+        <div class="input-wrap">
+          <svg class="i input-ico" aria-hidden="true"><use href="#i-list"/></svg>
+          <input id="tf-memo" name="memo" maxlength="80" autocomplete="off" value="{{ form.memo }}" placeholder="What's it for?" data-memo>
+          <span class="counter" data-memo-count aria-hidden="true">0/80</span>
+        </div>
+        {% if errors.memo %}<small class="field-error">{{ errors.memo }}</small>{% endif %}
+      </div>
+    </fieldset>
 
-    <label class="field {{ 'has-error' if errors.memo }}">
-      <span>Note for the recipient <em>(optional)</em></span>
-      <input name="memo" maxlength="80" autocomplete="off" value="{{ form.memo }}">
-      {% if errors.memo %}<small class="field-error">{{ errors.memo }}</small>{% endif %}
-    </label>
-
-    <button class="btn btn-brass btn-block hold" type="submit" data-hold>
+    <button class="btn btn-primary btn-block btn-lg hold" type="submit" data-hold>
       <span class="hold-fill" aria-hidden="true"></span>
+      <span class="hold-ring" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></span>
       <span class="hold-label">Hold to send</span>
     </button>
-    <p class="muted small">Press and hold for one second. This stops accidental double taps from sending money.</p>
+    <p class="hold-help"><svg class="i" aria-hidden="true"><use href="#i-hand"/></svg>Press and hold the button for one second (or hold Space). This stops accidental taps from sending money.</p>
   </form>
 
-  <aside class="preview" aria-hidden="true">
-    <div class="preview-card preview-from"><small>From</small><strong data-pv-from>Checking</strong></div>
-    <svg class="preview-path" viewBox="0 0 100 260" preserveAspectRatio="none">
-      <path d="M50 0 C 10 80, 90 180, 50 260" />
-    </svg>
-    <p class="preview-amount odometer" data-pv-amount>0.00</p>
-    <div class="preview-card preview-to"><small>To</small><strong data-pv-to>Enter an account number</strong></div>
+  <aside class="panel review" aria-hidden="true">
+    <p class="label">Review</p>
+    <div class="flow">
+      <div class="flow-end flow-from">
+        <span class="flow-ico"><svg class="i"><use href="#i-home"/></svg></span>
+        <span><small>From</small><strong data-pv-from>Checking</strong></span>
+      </div>
+      <div class="flow-beam"><i></i><i></i><i></i></div>
+      <div class="flow-end flow-to" data-pv-to-card>
+        <span class="flow-ico"><svg class="i"><use href="#i-user"/></svg></span>
+        <span><small>To</small><strong data-pv-to>Enter an account number</strong></span>
+      </div>
+    </div>
+    <p class="review-amount odometer" data-pv-amount>0.00</p>
+    <dl class="review-list">
+      <div><dt>Note</dt><dd data-pv-memo>None</dd></div>
+      <div><dt>Fee</dt><dd>Free</dd></div>
+      <div><dt>Arrives</dt><dd>Instantly</dd></div>
+      <div><dt>Left after</dt><dd data-pv-after>—</dd></div>
+    </dl>
+    <div class="review-ready" data-pv-ready>
+      <span class="rr-dot"></span><span data-pv-status>Fill in the steps to continue</span>
+    </div>
   </aside>
 </section>
 {% endblock %}

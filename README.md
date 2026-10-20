@@ -28,7 +28,7 @@ The container runs as a non-root user with a read-only filesystem, all Linux cap
 ```bash
 pytest -m "not e2e"                  # 35 unit, security and transfer tests
 playwright install chromium
-pytest -m e2e                        # 3 Playwright browser tests
+pytest -m e2e                        # 4 Playwright browser tests
 pytest --cov=app                     # coverage report
 ```
 
@@ -58,17 +58,25 @@ pytest --cov=app                     # coverage report
 
 ## Interface
 
-The UI is built around a bank vault. Motion is tied to what the user is doing, and all of it switches off under `prefers-reduced-motion`.
+A dark "Midnight" fintech design (Inter + Plus Jakarta Sans, indigo-to-cyan accents) built to feel polished and to be easy for first-time users. All motion switches off under `prefers-reduced-motion`.
 
-- **Vault door** (SVG): the hero dial tracks your cursor; on sign-in every keystroke turns the dial, a failed attempt shakes it and flashes the marker, and a successful sign-in plays a full sequence where the bolts retract and the door swings open onto the dashboard.
-- **Brass-dust field**: a canvas particle network that scatters away from the pointer.
-- **Odometer balances**: every digit rolls into place independently.
-- **3D cards**: account cards tilt toward the pointer with a moving light glare.
-- **Hold to send**: transfers need a one-second press (mouse, touch, or holding Space/Enter), so a stray click can't move money.
-- **Receipts**: coins arc from sender to recipient, a stamp lands, and confetti bursts.
-- **Session ring**: a countdown ring in the header shows time until automatic sign-out and warns at 60 seconds.
+**Made for new users**
+- **Getting-started checklist** on the overview tracks four first steps (open account, copy your number, move to savings, send money) with a progress ring.
+- **Guided tour**: a 30-second spotlight walkthrough of the dashboard (keyboard: arrows, Esc).
+- **Guided sign-up**: a progress bar, live check marks on each field, plain-language hints, a password strength meter and show/hide password.
+- **Three-step transfer**: pick a source, enter the recipient (their masked name is confirmed live), choose an amount with quick picks. "My savings" / "My checking" shortcuts handle moving between your own accounts. A live review panel shows who gets what and your balance afterwards.
+- **Clear safety cues**: Caps Lock warning, "more than your balance" warnings, idle sign-out warning with a "Stay signed in" button.
 
-All animation runs under the strict CSP. Dynamic styling goes through the CSSOM rather than inline `style` attributes.
+**Motion**
+- Drifting aurora background, cursor spotlight and grid, scroll progress bar, cross-page view transitions.
+- Landing hero with word-by-word headline reveal, parallax dashboard mock-up, floating cards and count-up stats.
+- Sign-in lock that reacts to typing, shakes on a wrong password and unlocks on submit; a welcome unlock animation after sign-in.
+- Rolling odometer balances, a self-drawing balance chart with hover tooltip, 3D tilt cards with glare, sliding nav highlight, magnetic buttons and ripples.
+- **Hold to send**: transfers need a one-second press (mouse, touch, or Space/Enter) with a filling progress ring, so a stray click can't move money.
+- Receipts: the check mark draws, coins fly from sender to recipient and confetti bursts.
+- Mobile gets a bottom tab bar with a raised Send button.
+
+Everything runs under the strict CSP: no inline scripts or styles, and dynamic styling goes through the CSSOM.
 
 ## Project layout
 
@@ -82,7 +90,7 @@ app/
   auth.py          register, sign in, sign out
   bank.py          dashboard, transfers, receipts, activity, recipient lookup
   admin.py         admin console, freeze and unlock
-  templates/       Jinja templates (vault component in _vault.html)
+  templates/       Jinja templates (icon sprite in _icons.html)
   static/          style.css, fx.js
 tests/             pytest unit/security tests + Playwright E2E
 ```

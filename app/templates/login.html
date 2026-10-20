@@ -3,24 +3,70 @@
 {% block body_class %}page-auth{% endblock %}
 {% block content %}
 <section class="auth">
-  <div class="auth-vault {{ 'is-denied' if error }}">
-    {% with vault_class='vault-auth' %}{% include "_vault.html" %}{% endwith %}
-  </div>
-  <form class="panel auth-form" method="post" novalidate data-vault-form>
-    <h1>Sign in</h1>
-    <p class="muted">Every keystroke turns the dial.</p>
+  <aside class="auth-art" aria-hidden="true">
+    <div class="lock-scene {{ 'is-denied' if error }}" data-lock>
+      <div class="lock-rings"><i></i><i></i><i></i></div>
+      <div class="lock">
+        <svg viewBox="0 0 120 140">
+          <defs>
+            <linearGradient id="lockGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7C8CFF"/><stop offset="1" stop-color="#37D3F0"/>
+            </linearGradient>
+          </defs>
+          <path class="lock-shackle" d="M34 62V42a26 26 0 0 1 52 0v20"/>
+          <rect class="lock-body" x="16" y="60" width="88" height="70" rx="18"/>
+          <circle class="lock-hole" cx="60" cy="90" r="8"/>
+          <path class="lock-hole" d="M60 94v14"/>
+        </svg>
+      </div>
+      <div class="lock-dots" data-lock-dots></div>
+    </div>
+    <div class="auth-art-copy">
+      <h2>Welcome back</h2>
+      <ul class="trust-list">
+        <li><svg class="i"><use href="#i-shield-check"/></svg>Encrypted, expiring session</li>
+        <li><svg class="i"><use href="#i-lock"/></svg>Locks after 5 wrong attempts</li>
+        <li><svg class="i"><use href="#i-clock"/></svg>Auto sign-out after 10 idle minutes</li>
+      </ul>
+    </div>
+  </aside>
+
+  <form class="panel auth-form {{ 'is-denied' if error }}" method="post" novalidate data-login>
+    <div class="form-head">
+      <h1>Sign in</h1>
+      <p class="muted">Good to see you again. Enter your details below.</p>
+    </div>
     {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label class="field">
-      <span>Username</span>
-      <input name="username" autocomplete="username" required maxlength="64" value="{{ request.form.username }}" autofocus>
-    </label>
-    <label class="field">
-      <span>Password</span>
-      <input name="password" type="password" autocomplete="current-password" required maxlength="128">
-    </label>
-    <button class="btn btn-brass btn-block magnetic" type="submit">Unlock vault</button>
-    <p class="muted small">New here? <a href="{{ url_for('auth.register') }}">Open an account</a></p>
+
+    <div class="field">
+      <label for="login-username">Username</label>
+      <div class="input-wrap">
+        <svg class="i input-ico" aria-hidden="true"><use href="#i-user"/></svg>
+        <input id="login-username" name="username" autocomplete="username" required maxlength="64"
+               value="{{ request.form.username }}" autofocus placeholder="e.g. alex_m">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="login-password">Password</label>
+      <div class="input-wrap">
+        <svg class="i input-ico" aria-hidden="true"><use href="#i-key"/></svg>
+        <input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="128" placeholder="Your password">
+        <button class="reveal-pw" type="button" data-reveal="login-password" aria-label="Show password" aria-pressed="false">
+          <svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>
+        </button>
+      </div>
+      <small class="hint caps-hint" data-caps hidden>Caps Lock is on</small>
+    </div>
+
+    <button class="btn btn-primary btn-block btn-lg magnetic" type="submit" data-submit>
+      <span class="btn-label">Sign in</span>
+      <span class="spinner" aria-hidden="true"></span>
+    </button>
+
+    <p class="divider"><span>New to SecureBank?</span></p>
+    <a class="btn btn-ghost btn-block" href="{{ url_for('auth.register') }}">Open a free account</a>
   </form>
 </section>
 {% endblock %}

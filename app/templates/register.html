@@ -2,39 +2,91 @@
 {% block title %}Open an account · SecureBank Pro{% endblock %}
 {% block body_class %}page-auth{% endblock %}
 {% block content %}
+{% macro field(name, label, type='text', auto='off', max=64, hint='', icon='i-user', pattern='', placeholder='') %}
+<div class="field {{ 'has-error' if errors.get(name) }}" data-field>
+  <label for="reg-{{ name }}">{{ label }}</label>
+  <div class="input-wrap">
+    <svg class="i input-ico" aria-hidden="true"><use href="#{{ icon }}"/></svg>
+    <input id="reg-{{ name }}" name="{{ name }}" type="{{ type }}" autocomplete="{{ auto }}" maxlength="{{ max }}"
+           value="{{ form.get(name, '') if type != 'password' }}" required
+           {% if pattern %}data-pattern="{{ pattern }}"{% endif %}
+           {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+           aria-describedby="{{ 'err-' ~ name if errors.get(name) else 'hint-' ~ name }}"
+           {% if errors.get(name) %}aria-invalid="true"{% endif %}>
+    {% if name == 'password' %}
+    <button class="reveal-pw" type="button" data-reveal="reg-password reg-confirm" aria-label="Show password" aria-pressed="false">
+      <svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>
+    </button>
+    {% else %}
+    <span class="valid-mark" aria-hidden="true"><svg class="i"><use href="#i-check"/></svg></span>
+    {% endif %}
+  </div>
+  {% if errors.get(name) %}<small class="field-error" id="err-{{ name }}">{{ errors[name] }}</small>
+  {% elif hint %}<small class="hint" id="hint-{{ name }}">{{ hint }}</small>{% endif %}
+</div>
+{% endmacro %}
+
 <section class="auth auth-register">
-  <form class="panel auth-form" method="post" novalidate>
-    <h1>Open an account</h1>
-    <p class="muted">You'll get a checking and a savings account, with 5,000.00 to practise with.</p>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    {% macro field(name, label, type='text', auto='off', max=64) %}
-    <label class="field {{ 'has-error' if errors.get(name) }}">
-      <span>{{ label }}</span>
-      <input name="{{ name }}" type="{{ type }}" autocomplete="{{ auto }}" maxlength="{{ max }}"
-             value="{{ form.get(name, '') if type != 'password' }}" required
-             {% if errors.get(name) %}aria-invalid="true" aria-describedby="err-{{ name }}"{% endif %}>
-      {% if errors.get(name) %}<small class="field-error" id="err-{{ name }}">{{ errors[name] }}</small>{% endif %}
-    </label>
-    {% endmacro %}
-    {{ field('full_name', 'Full name', auto='name', max=60) }}
-    <div class="row-2">
-      {{ field('username', 'Username', auto='username', max=24) }}
-      {{ field('email', 'Email', type='email', auto='email', max=254) }}
+  <aside class="auth-art" aria-hidden="true">
+    <div class="welcome-card">
+      <div class="wc-glow"></div>
+      <span class="wc-ico"><svg class="i"><use href="#i-gift"/></svg></span>
+      <p class="wc-label">Welcome deposit</p>
+      <p class="wc-amount"><span class="odometer" data-odometer="500000">5,000.00</span></p>
+      <p class="wc-sub">Lands in your checking account the moment you open it.</p>
     </div>
-    {{ field('password', 'Password', type='password', auto='new-password', max=128) }}
-    <div class="strength" data-strength aria-live="polite">
-      <div class="strength-bar"><i></i><i></i><i></i><i></i><i></i></div>
-      <ul class="strength-rules">
-        <li data-rule="len">12+ characters</li>
-        <li data-rule="lower">Lowercase</li>
-        <li data-rule="upper">Uppercase</li>
-        <li data-rule="digit">Number</li>
-        <li data-rule="symbol">Symbol</li>
+    <div class="auth-art-copy">
+      <h2>What you get</h2>
+      <ul class="trust-list">
+        <li><svg class="i"><use href="#i-home"/></svg>A checking account for everyday transfers</li>
+        <li><svg class="i"><use href="#i-piggy"/></svg>A savings account to set money aside</li>
+        <li><svg class="i"><use href="#i-shield-check"/></svg>Bank-grade protection on every action</li>
       </ul>
     </div>
-    {{ field('confirm', 'Confirm password', type='password', auto='new-password', max=128) }}
-    <button class="btn btn-brass btn-block magnetic" type="submit">Open account</button>
-    <p class="muted small">Already a customer? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+  </aside>
+
+  <form class="panel auth-form" method="post" novalidate data-register>
+    <div class="form-head">
+      <h1>Open an account</h1>
+      <p class="muted">Free, takes about a minute. No real money involved.</p>
+    </div>
+    <div class="form-progress" aria-hidden="true">
+      <div class="form-progress-bar"><i data-progress></i></div>
+      <span data-progress-text>0 of 5 done</span>
+    </div>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <fieldset class="group">
+      <legend><span class="group-num">1</span>About you</legend>
+      {{ field('full_name', 'Full name', auto='name', max=60, hint='As you want it shown to people you pay.', icon='i-user', pattern="^[A-Za-z][A-Za-z .'\\-]{1,59}$", placeholder='Alex Morgan') }}
+      <div class="row-2">
+        {{ field('username', 'Username', auto='username', max=24, hint='3–24 letters, numbers or _', icon='i-user', pattern='^[A-Za-z0-9_]{3,24}$', placeholder='alex_m') }}
+        {{ field('email', 'Email', type='email', auto='email', max=254, hint='Used to identify your account.', icon='i-send', pattern='^[^@\\s]{1,64}@[^@\\s]{1,190}\\.[A-Za-z]{2,24}$', placeholder='alex@example.com') }}
+      </div>
+    </fieldset>
+
+    <fieldset class="group">
+      <legend><span class="group-num">2</span>Secure your account</legend>
+      {{ field('password', 'Password', type='password', auto='new-password', max=128, icon='i-key') }}
+      <div class="strength" data-strength aria-live="polite">
+        <div class="strength-bar"><i></i><i></i><i></i><i></i><i></i></div>
+        <p class="strength-word" data-strength-word>Use at least 12 characters</p>
+        <ul class="strength-rules">
+          <li data-rule="len">12+ characters</li>
+          <li data-rule="lower">Lowercase</li>
+          <li data-rule="upper">Uppercase</li>
+          <li data-rule="digit">Number</li>
+          <li data-rule="symbol">Symbol</li>
+        </ul>
+      </div>
+      {{ field('confirm', 'Confirm password', type='password', auto='new-password', max=128, hint='Type the same password again.', icon='i-lock') }}
+    </fieldset>
+
+    <button class="btn btn-primary btn-block btn-lg magnetic" type="submit" data-submit>
+      <span class="btn-label">Open account</span>
+      <span class="spinner" aria-hidden="true"></span>
+    </button>
+    <p class="muted small center">Already a customer? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
   </form>
 </section>
 {% endblock %}

@@ -2,7 +2,16 @@
 {% block title %}Receipt #{{ tx.id }} · SecureBank Pro{% endblock %}
 {% block body_class %}page-app{% endblock %}
 {% block content %}
+{% set verb = 'Sent' if tx.sign < 0 else ('Received' if tx.sign > 0 else 'Moved') %}
 <section class="receipt panel narrow" data-receipt>
+  <div class="success" aria-hidden="true">
+    <span class="burst"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <svg viewBox="0 0 80 80" class="success-mark"><circle cx="40" cy="40" r="34"/><path d="M25 41 l10 10 l21 -23"/></svg>
+  </div>
+
+  <h1>{{ verb }}</h1>
+  <p class="receipt-amount odometer" data-odometer="{{ tx.amount_cents }}">{{ money(tx.amount_cents) }}</p>
+
   <div class="coin-run" aria-hidden="true">
     {% if tx.sign == 0 %}
     <div class="coin-end coin-from">{{ row.from_kind|capitalize }}</div>
@@ -14,22 +23,21 @@
     <div class="coin-end coin-to">{{ row.to_name.split()[0] }}</div>
     {% endif %}
   </div>
-  <div class="stamp" aria-hidden="true">
-    <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34"/><path d="M24 41 l11 11 l22 -24"/></svg>
-  </div>
-  <h1>{{ 'Sent' if tx.sign < 0 else ('Received' if tx.sign > 0 else 'Moved') }}</h1>
-  <p class="receipt-amount odometer" data-odometer="{{ tx.amount_cents }}">{{ money(tx.amount_cents) }}</p>
+
   <dl class="receipt-list">
     <div><dt>Details</dt><dd>{{ tx.title }}</dd></div>
-    {% if row.from_number and row.from_user == g.user.id %}<div><dt>From</dt><dd>{{ row.from_number }}</dd></div>{% endif %}
-    {% if row.to_user == g.user.id %}<div><dt>Into</dt><dd>{{ row.to_number }}</dd></div>{% endif %}
+    {% if row.from_number and row.from_user == g.user.id %}<div><dt>From</dt><dd class="mono">{{ row.from_number }}</dd></div>{% endif %}
+    {% if row.to_user == g.user.id %}<div><dt>Into</dt><dd class="mono">{{ row.to_number }}</dd></div>{% endif %}
     <div><dt>Note</dt><dd>{{ tx.memo or 'No note' }}</dd></div>
-    <div><dt>Reference</dt><dd>SBP-{{ '%08d' % tx.id }}</dd></div>
-    <div><dt>Time</dt><dd>{{ tx.created_at }} UTC</dd></div>
+    <div><dt>Reference</dt><dd class="mono">SBP-{{ '%08d' % tx.id }}
+      <button class="icon-btn icon-btn-sm" type="button" data-copy="SBP-{{ '%08d' % tx.id }}" data-copy-label="✓" aria-label="Copy reference"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg><span data-copy-text class="sr-only">Copy</span></button></dd></div>
+    <div><dt>Time</dt><dd>{{ tx.created_at|replace('T', ' ') }} UTC</dd></div>
+    <div><dt>Status</dt><dd><span class="pill pill-green"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Completed</span></dd></div>
   </dl>
   <div class="receipt-actions">
-    <a class="btn btn-brass" href="{{ url_for('bank.transfer') }}">Send another</a>
+    <a class="btn btn-primary" href="{{ url_for('bank.transfer') }}"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg>Send another</a>
     <a class="btn btn-ghost" href="{{ url_for('bank.dashboard') }}">Back to overview</a>
+    <button class="btn btn-ghost" type="button" data-print>Print</button>
   </div>
 </section>
 {% endblock %}

@@ -3,29 +3,40 @@
 {% block body_class %}page-app{% endblock %}
 {% block content %}
 <section class="admin">
-  <h1>Admin console</h1>
+  <header class="dash-head">
+    <div>
+      <p class="eyebrow">Operations</p>
+      <h1>Admin console</h1>
+    </div>
+  </header>
   <dl class="stats">
-    <div class="stat"><dt>Customers</dt><dd class="odometer" data-odometer-int="{{ stats.users }}">{{ stats.users }}</dd></div>
-    <div class="stat"><dt>Held in all accounts</dt><dd class="odometer" data-odometer="{{ stats.deposits }}">{{ money(stats.deposits) }}</dd></div>
-    <div class="stat"><dt>Failed sign-ins, 24h</dt><dd class="odometer" data-odometer-int="{{ stats.failed_24h }}">{{ stats.failed_24h }}</dd></div>
-    <div class="stat stat-alert"><dt>Attacks blocked, 24h</dt><dd class="odometer" data-odometer-int="{{ stats.blocked_24h }}">{{ stats.blocked_24h }}</dd></div>
+    <div class="stat"><span class="stat-ico"><svg class="i" aria-hidden="true"><use href="#i-users"/></svg></span><dt>Customers</dt><dd class="odometer" data-odometer-int="{{ stats.users }}">{{ stats.users }}</dd></div>
+    <div class="stat"><span class="stat-ico"><svg class="i" aria-hidden="true"><use href="#i-db"/></svg></span><dt>Held in all accounts</dt><dd class="odometer" data-odometer="{{ stats.deposits }}">{{ money(stats.deposits) }}</dd></div>
+    <div class="stat"><span class="stat-ico"><svg class="i" aria-hidden="true"><use href="#i-key"/></svg></span><dt>Failed sign-ins, 24h</dt><dd class="odometer" data-odometer-int="{{ stats.failed_24h }}">{{ stats.failed_24h }}</dd></div>
+    <div class="stat stat-alert"><span class="stat-ico"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg></span><dt>Attacks blocked, 24h</dt><dd class="odometer" data-odometer-int="{{ stats.blocked_24h }}">{{ stats.blocked_24h }}</dd></div>
   </dl>
 
   <div class="panel">
-    <h2>Customers</h2>
+    <div class="panel-head">
+      <h2>Customers</h2>
+      <div class="input-wrap input-search">
+        <svg class="i input-ico" aria-hidden="true"><use href="#i-user"/></svg>
+        <input type="search" placeholder="Filter by name or username" aria-label="Filter customers" data-table-filter="#customers">
+      </div>
+    </div>
     <div class="table-wrap">
-      <table>
+      <table id="customers">
         <thead><tr><th>User</th><th>Role</th><th>Balance</th><th>Last sign-in</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
         <tbody>
         {% for u in users %}
           <tr>
-            <td><strong>{{ u.username }}</strong><small>{{ u.full_name }}</small></td>
+            <td><div class="user-cell"><span class="avatar avatar-sm" aria-hidden="true">{{ u.full_name[:1]|upper }}</span><span><strong>{{ u.username }}</strong><small>{{ u.full_name }}</small></span></div></td>
             <td>{{ u.role }}</td>
             <td class="num">{{ money(u.total) }}</td>
             <td>{{ (u.last_login_at or 'Never')[:16]|replace('T', ' ') }}</td>
             <td>
               {% if u.is_frozen %}<span class="pill pill-red">Frozen</span>
-              {% elif u.locked_until %}<span class="pill pill-brass">Lock recorded</span>
+              {% elif u.locked_until %}<span class="pill pill-amber">Lock recorded</span>
               {% else %}<span class="pill pill-green">Active</span>{% endif %}
             </td>
             <td><div class="actions-row">
@@ -54,7 +65,7 @@
     <ol class="audit stagger">
       {% for e in events %}
       <li class="audit-{{ 'bad' if e.event in ('csrf_rejected','authz_denied','transfer_idor_blocked','login_rate_limited','account_locked','login_failed','login_locked') else 'ok' }}">
-        <time>{{ e.created_at }}</time>
+        <time>{{ e.created_at|replace('T', ' ') }}</time>
         <strong>{{ e.event|replace('_', ' ') }}</strong>
         <span>{{ e.username or 'anonymous' }} from {{ e.ip_address }}</span>
         {% if e.detail %}<code>{{ e.detail }}</code>{% endif %}

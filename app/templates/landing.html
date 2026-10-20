@@ -3,28 +3,143 @@
 {% block content %}
 <section class="hero">
   <div class="hero-copy">
-    <h1 class="scramble" data-text="Your money stays behind a door only you can open.">Your money stays behind a door only you can open.</h1>
-    <p class="lede">SecureBank Pro is a capstone banking app built to show how real banks keep accounts safe: hashed passwords, locked-down sessions, and transfers that either fully happen or don't happen at all.</p>
-    <div class="hero-actions">
-      <a class="btn btn-brass btn-lg magnetic" href="{{ url_for('auth.register') }}">Open an account</a>
-      <a class="btn btn-ghost btn-lg" href="{{ url_for('auth.login') }}">Sign in</a>
+    <p class="badge reveal-up"><span class="badge-dot"></span>Demo bank · every security control is real</p>
+    <h1 class="hero-title" data-words>Banking that feels <span class="grad-text">effortless</span> and stays <span class="grad-text">locked down</span>.</h1>
+    <p class="lede reveal-up">Open an account in under a minute, get 5,000.00 to practise with, and send money safely. Built like a real bank: hashed passwords, expiring sessions and transfers that never half-happen.</p>
+    <div class="hero-actions reveal-up">
+      <a class="btn btn-primary btn-lg magnetic" href="{{ url_for('auth.register') }}">
+        Open a free account <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg>
+      </a>
+      <a class="btn btn-ghost btn-lg" href="{{ url_for('auth.login') }}">I already have one</a>
     </div>
-    <p class="hero-note">New accounts start with a 5,000.00 demo balance. No real money moves.</p>
+    <ul class="hero-proof reveal-up">
+      <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>No real money</li>
+      <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Takes 60 seconds</li>
+      <li><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>Free checking &amp; savings</li>
+    </ul>
   </div>
-  <div class="hero-vault" data-follow>
-    {% with vault_class='vault-hero' %}{% include "_vault.html" %}{% endwith %}
+
+  <div class="hero-stage" data-parallax aria-hidden="true">
+    <div class="orbit orbit-1"><span></span></div>
+    <div class="orbit orbit-2"><span></span></div>
+
+    <div class="mock layer" data-depth="0.35">
+      <div class="mock-head">
+        <span class="mock-dots"><i></i><i></i><i></i></span>
+        <span class="mock-chip"><svg class="i"><use href="#i-lock"/></svg>Secure session</span>
+      </div>
+      <p class="mock-label">Total balance</p>
+      <p class="mock-total"><span class="odometer" data-odometer="1248060">12,480.60</span></p>
+      <svg class="mock-chart" viewBox="0 0 300 90" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="mockFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#7C8CFF" stop-opacity=".45"/><stop offset="1" stop-color="#7C8CFF" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="mockLine" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7C8CFF"/><stop offset="1" stop-color="#37D3F0"/>
+          </linearGradient>
+        </defs>
+        <path class="mock-area" d="M0 70 C 30 66, 50 52, 80 56 S 130 34, 160 40 S 220 18, 250 22 S 290 8, 300 6 L300 90 L0 90 Z"/>
+        <path class="mock-line" d="M0 70 C 30 66, 50 52, 80 56 S 130 34, 160 40 S 220 18, 250 22 S 290 8, 300 6"/>
+      </svg>
+      <div class="mock-rows">
+        <div class="mock-row"><span class="mock-ico in"><svg class="i"><use href="#i-in"/></svg></span><span><b>From Sam K.</b><small>Rent split</small></span><em class="pos">+640.00</em></div>
+        <div class="mock-row"><span class="mock-ico out"><svg class="i"><use href="#i-out"/></svg></span><span><b>To Priya R.</b><small>Concert tickets</small></span><em>−120.00</em></div>
+      </div>
+    </div>
+
+    <div class="float-card card-visual layer" data-depth="0.8">
+      <span class="cv-chip"></span>
+      <span class="cv-brand">SecureBank<em>Pro</em></span>
+      <span class="cv-num">SB •••• •••• 4821</span>
+      <span class="cv-kind">Checking</span>
+    </div>
+
+    <div class="float-note note-sent layer" data-depth="1.2">
+      <span class="note-ico ok"><svg class="i"><use href="#i-check"/></svg></span>
+      <span><b>Transfer sent</b><small>320.40 to Fred H.</small></span>
+    </div>
+    <div class="float-note note-shield layer" data-depth="1.5">
+      <span class="note-ico"><svg class="i"><use href="#i-shield-check"/></svg></span>
+      <span><b>6 layers active</b><small>Your account is protected</small></span>
+    </div>
   </div>
 </section>
 
-<section class="layers" aria-labelledby="layers-title">
-  <h2 id="layers-title">Six layers between your balance and everyone else</h2>
-  <ol class="layer-list">
-    <li class="reveal"><h3>Your password is never stored</h3><p>Only a salted scrypt hash is saved, so a stolen database doesn't reveal it.</p></li>
-    <li class="reveal"><h3>Guessing gets you locked out</h3><p>Five wrong passwords lock the account for 15 minutes, and each connection is rate-limited.</p></li>
-    <li class="reveal"><h3>Sessions expire on their own</h3><p>Ten idle minutes signs you out. Signing out revokes every copy of your session, everywhere.</p></li>
-    <li class="reveal"><h3>Other sites can't act as you</h3><p>Every form carries a secret token and cookies are SameSite=Strict, blocking cross-site requests.</p></li>
-    <li class="reveal"><h3>You only ever see your own accounts</h3><p>Every lookup is scoped to the signed-in owner. Guessing someone else's receipt number returns nothing.</p></li>
-    <li class="reveal"><h3>Transfers can't half-happen</h3><p>Debit, credit and ledger entry commit together under a write lock, and a resubmitted form never pays twice.</p></li>
+<section class="stats-band" aria-label="At a glance">
+  <div class="stat-item reveal"><strong><span data-count="60">60</span>s</strong><span>to open an account</span></div>
+  <div class="stat-item reveal"><strong><span data-count="5000">5,000</span></strong><span>practice balance</span></div>
+  <div class="stat-item reveal"><strong><span data-count="6">6</span></strong><span>security layers</span></div>
+  <div class="stat-item reveal"><strong><span data-count="0">0</span></strong><span>real money at risk</span></div>
+</section>
+
+<section class="section how" aria-labelledby="how-title">
+  <p class="eyebrow reveal">How it works</p>
+  <h2 id="how-title" class="section-title reveal">Up and running in three steps</h2>
+  <ol class="steps">
+    <li class="step reveal">
+      <span class="step-num">1</span>
+      <span class="step-ico"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg></span>
+      <h3>Open your account</h3>
+      <p>Pick a username and a strong password. A live checklist shows you exactly what's needed.</p>
+    </li>
+    <li class="step reveal">
+      <span class="step-num">2</span>
+      <span class="step-ico"><svg class="i" aria-hidden="true"><use href="#i-gift"/></svg></span>
+      <h3>Get 5,000.00 to try</h3>
+      <p>You get a checking and a savings account, with a welcome deposit already waiting.</p>
+    </li>
+    <li class="step reveal">
+      <span class="step-num">3</span>
+      <span class="step-ico"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg></span>
+      <h3>Send money safely</h3>
+      <p>Type a friend's account number, see their name confirmed, then press and hold to send.</p>
+    </li>
   </ol>
+</section>
+
+<section class="section" aria-labelledby="layers-title">
+  <p class="eyebrow reveal">Security, built in</p>
+  <h2 id="layers-title" class="section-title reveal">Six layers between your balance and everyone else</h2>
+  <div class="bento">
+    <article class="feature spot-card reveal">
+      <span class="feature-ico"><svg class="i" aria-hidden="true"><use href="#i-key"/></svg></span>
+      <h3>Your password is never stored</h3>
+      <p>Only a salted scrypt hash is saved, so a stolen database doesn't reveal it.</p>
+    </article>
+    <article class="feature spot-card reveal">
+      <span class="feature-ico"><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg></span>
+      <h3>Guessing gets you locked out</h3>
+      <p>Five wrong passwords lock the account for 15 minutes, and every connection is rate-limited.</p>
+    </article>
+    <article class="feature spot-card reveal">
+      <span class="feature-ico"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg></span>
+      <h3>Sessions expire on their own</h3>
+      <p>Ten idle minutes signs you out. Signing out revokes every copy of your session, everywhere.</p>
+    </article>
+    <article class="feature spot-card reveal">
+      <span class="feature-ico"><svg class="i" aria-hidden="true"><use href="#i-shield-check"/></svg></span>
+      <h3>Other sites can't act as you</h3>
+      <p>Every form carries a secret token and cookies are SameSite=Strict, blocking cross-site requests.</p>
+    </article>
+    <article class="feature spot-card reveal">
+      <span class="feature-ico"><svg class="i" aria-hidden="true"><use href="#i-eye-off"/></svg></span>
+      <h3>You only see your own accounts</h3>
+      <p>Every lookup is scoped to the signed-in owner. Guessing someone else's receipt returns nothing.</p>
+    </article>
+    <article class="feature spot-card reveal">
+      <span class="feature-ico"><svg class="i" aria-hidden="true"><use href="#i-db"/></svg></span>
+      <h3>Transfers can't half-happen</h3>
+      <p>Debit, credit and ledger entry commit together under a write lock, and a resubmitted form never pays twice.</p>
+    </article>
+  </div>
+</section>
+
+<section class="cta reveal">
+  <div class="cta-inner">
+    <h2>Ready to try it?</h2>
+    <p>Your practice account is one minute away.</p>
+    <a class="btn btn-primary btn-lg magnetic" href="{{ url_for('auth.register') }}">Open a free account <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </div>
 </section>
 {% endblock %}
