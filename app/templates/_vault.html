@@ -1,0 +1,50 @@
+{# Animated vault door. Rings spin, dial follows input, bolts retract when .is-open is added. #}
+<div class="vault {{ vault_class|default('') }}" aria-hidden="true">
+  <div class="vault-glow"></div>
+  <svg viewBox="0 0 400 400" class="vault-svg">
+    <defs>
+      <radialGradient id="steel" cx="40%" cy="35%" r="75%">
+        <stop offset="0" stop-color="#3A5578"/><stop offset=".55" stop-color="#1A2F4C"/><stop offset="1" stop-color="#0B1D33"/>
+      </radialGradient>
+      <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#F1D88A"/><stop offset=".5" stop-color="#C8A24A"/><stop offset="1" stop-color="#7A5E1F"/>
+      </linearGradient>
+    </defs>
+    <circle cx="200" cy="200" r="196" class="vault-frame"/>
+    <g class="vault-ticks">
+      {% for i in range(72) %}
+      <line x1="200" y1="10" x2="200" y2="{{ 22 if i % 6 == 0 else 16 }}" transform="rotate({{ i * 5 }} 200 200)"/>
+      {% endfor %}
+    </g>
+    <g class="vault-bolts">
+      {% for i in range(8) %}
+      <g transform="rotate({{ i * 45 + 22.5 }} 200 200)"><rect class="bolt" x="189" y="26" width="22" height="34" rx="5"/></g>
+      {% endfor %}
+    </g>
+    <g class="vault-door">
+      <circle cx="200" cy="200" r="150" fill="url(#steel)" class="door-face"/>
+      <circle cx="200" cy="200" r="150" class="door-rim"/>
+      <g class="vault-ring">
+        <circle cx="200" cy="200" r="122" class="ring-line"/>
+        {% for n in range(0, 100, 10) %}
+        <text x="200" y="92" transform="rotate({{ n * 3.6 }} 200 200)" class="ring-num">{{ '%02d' % n }}</text>
+        {% endfor %}
+        {% for i in range(100) %}
+        <line x1="200" y1="80" x2="200" y2="{{ 86 if i % 5 else 90 }}" transform="rotate({{ i * 3.6 }} 200 200)" class="ring-tick"/>
+        {% endfor %}
+      </g>
+      <g class="vault-dial">
+        <circle cx="200" cy="200" r="58" fill="url(#brass)" class="dial-face"/>
+        {% for a in [0, 120, 240] %}
+        <g transform="rotate({{ a }} 200 200)">
+          <rect x="194" y="96" width="12" height="104" rx="6" fill="url(#brass)" class="spoke"/>
+          <circle cx="200" cy="100" r="14" fill="url(#brass)" class="spoke-knob"/>
+        </g>
+        {% endfor %}
+        <circle cx="200" cy="200" r="22" class="dial-hub"/>
+        <circle cx="200" cy="200" r="8" fill="url(#brass)"/>
+      </g>
+      <path d="M200 64 l-8 -14 h16 z" class="dial-marker"/>
+    </g>
+  </svg>
+</div>

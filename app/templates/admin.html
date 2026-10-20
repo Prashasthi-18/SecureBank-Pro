@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Admin · SecureBank Pro{% endblock %}
+{% block body_class %}page-app{% endblock %}
+{% block content %}
+<section class="admin">
+  <h1>Admin console</h1>
+  <dl class="stats">
+    <div class="stat"><dt>Customers</dt><dd class="odometer" data-odometer-int="{{ stats.users }}">{{ stats.users }}</dd></div>
+    <div class="stat"><dt>Held in all accounts</dt><dd class="odometer" data-odometer="{{ stats.deposits }}">{{ money(stats.deposits) }}</dd></div>
+    <div class="stat"><dt>Failed sign-ins, 24h</dt><dd class="odometer" data-odometer-int="{{ stats.failed_24h }}">{{ stats.failed_24h }}</dd></div>
+    <div class="stat stat-alert"><dt>Attacks blocked, 24h</dt><dd class="odometer" data-odometer-int="{{ stats.blocked_24h }}">{{ stats.blocked_24h }}</dd></div>
+  </dl>
+
+  <div class="panel">
+    <h2>Customers</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>User</th><th>Role</th><th>Balance</th><th>Last sign-in</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+        <tbody>
+        {% for u in users %}
+          <tr>
+            <td><strong>{{ u.username }}</strong><small>{{ u.full_name }}</small></td>
+            <td>{{ u.role }}</td>
+            <td class="num">{{ money(u.total) }}</td>
+            <td>{{ (u.last_login_at or 'Never')[:16]|replace('T', ' ') }}</td>
+            <td>
+              {% if u.is_frozen %}<span class="pill pill-red">Frozen</span>
+              {% elif u.locked_until %}<span class="pill pill-brass">Lock recorded</span>
+              {% else %}<span class="pill pill-green">Active</span>{% endif %}
+            </td>
+            <td><div class="actions-row">
+              {% if u.id != g.user.id %}
+              <form method="post" action="{{ url_for('admin.toggle_freeze', user_id=u.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-ghost btn-sm" type="submit">{{ 'Unfreeze' if u.is_frozen else 'Freeze' }}</button>
+              </form>
+              {% if u.locked_until %}
+              <form method="post" action="{{ url_for('admin.unlock', user_id=u.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-ghost btn-sm" type="submit">Unlock</button>
+              </form>
+              {% endif %}
+              {% endif %}
+            </div></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Audit trail</h2>
+    <ol class="audit stagger">
+      {% for e in events %}
+      <li class="audit-{{ 'bad' if e.event in ('csrf_rejected','authz_denied','transfer_idor_blocked','login_rate_limited','account_locked','login_failed','login_locked') else 'ok' }}">
+        <time>{{ e.created_at }}</time>
+        <strong>{{ e.event|replace('_', ' ') }}</strong>
+        <span>{{ e.username or 'anonymous' }} from {{ e.ip_address }}</span>
+        {% if e.detail %}<code>{{ e.detail }}</code>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </div>
+</section>
+{% endblock %}

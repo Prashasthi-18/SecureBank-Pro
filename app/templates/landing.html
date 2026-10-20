@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body_class %}page-landing{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <h1 class="scramble" data-text="Your money stays behind a door only you can open.">Your money stays behind a door only you can open.</h1>
+    <p class="lede">SecureBank Pro is a capstone banking app built to show how real banks keep accounts safe: hashed passwords, locked-down sessions, and transfers that either fully happen or don't happen at all.</p>
+    <div class="hero-actions">
+      <a class="btn btn-brass btn-lg magnetic" href="{{ url_for('auth.register') }}">Open an account</a>
+      <a class="btn btn-ghost btn-lg" href="{{ url_for('auth.login') }}">Sign in</a>
+    </div>
+    <p class="hero-note">New accounts start with a 5,000.00 demo balance. No real money moves.</p>
+  </div>
+  <div class="hero-vault" data-follow>
+    {% with vault_class='vault-hero' %}{% include "_vault.html" %}{% endwith %}
+  </div>
+</section>
+
+<section class="layers" aria-labelledby="layers-title">
+  <h2 id="layers-title">Six layers between your balance and everyone else</h2>
+  <ol class="layer-list">
+    <li class="reveal"><h3>Your password is never stored</h3><p>Only a salted scrypt hash is saved, so a stolen database doesn't reveal it.</p></li>
+    <li class="reveal"><h3>Guessing gets you locked out</h3><p>Five wrong passwords lock the account for 15 minutes, and each connection is rate-limited.</p></li>
+    <li class="reveal"><h3>Sessions expire on their own</h3><p>Ten idle minutes signs you out. Signing out revokes every copy of your session, everywhere.</p></li>
+    <li class="reveal"><h3>Other sites can't act as you</h3><p>Every form carries a secret token and cookies are SameSite=Strict, blocking cross-site requests.</p></li>
+    <li class="reveal"><h3>You only ever see your own accounts</h3><p>Every lookup is scoped to the signed-in owner. Guessing someone else's receipt number returns nothing.</p></li>
+    <li class="reveal"><h3>Transfers can't half-happen</h3><p>Debit, credit and ledger entry commit together under a write lock, and a resubmitted form never pays twice.</p></li>
+  </ol>
+</section>
+{% endblock %}

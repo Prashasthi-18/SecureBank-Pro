@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Sign in · SecureBank Pro{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+{% block content %}
+<section class="auth">
+  <div class="auth-vault {{ 'is-denied' if error }}">
+    {% with vault_class='vault-auth' %}{% include "_vault.html" %}{% endwith %}
+  </div>
+  <form class="panel auth-form" method="post" novalidate data-vault-form>
+    <h1>Sign in</h1>
+    <p class="muted">Every keystroke turns the dial.</p>
+    {% if error %}<p class="form-error" role="alert">{{ error }}</p>{% endif %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="field">
+      <span>Username</span>
+      <input name="username" autocomplete="username" required maxlength="64" value="{{ request.form.username }}" autofocus>
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <input name="password" type="password" autocomplete="current-password" required maxlength="128">
+    </label>
+    <button class="btn btn-brass btn-block magnetic" type="submit">Unlock vault</button>
+    <p class="muted small">New here? <a href="{{ url_for('auth.register') }}">Open an account</a></p>
+  </form>
+</section>
+{% endblock %}

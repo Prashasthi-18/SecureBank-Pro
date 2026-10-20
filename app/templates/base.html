@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SecureBank Pro{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@500;700;800&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%230B1D33' stroke='%23C8A24A' stroke-width='3'/><circle cx='16' cy='16' r='4' fill='%23C8A24A'/></svg>">
+</head>
+<body class="{% block body_class %}{% endblock %}"
+      {% if g.user %}data-idle="{{ config.IDLE_TIMEOUT_SECONDS }}"{% endif %}>
+  <canvas id="dust" aria-hidden="true"></canvas>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <div class="curtain" aria-hidden="true"><span></span><span></span></div>
+
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('auth.landing') }}" aria-label="SecureBank Pro home">
+      <svg viewBox="0 0 32 32" class="brand-mark" aria-hidden="true">
+        <circle cx="16" cy="16" r="13" />
+        <g class="brand-spokes"><path d="M16 7v18M7 16h18" /></g>
+        <circle cx="16" cy="16" r="3.5" class="brand-hub" />
+      </svg>
+      <span>SecureBank Pro</span>
+    </a>
+    {% if g.user %}
+    <nav class="nav" aria-label="Main">
+      <a href="{{ url_for('bank.dashboard') }}" class="{{ 'is-active' if request.endpoint == 'bank.dashboard' }}">Overview</a>
+      <a href="{{ url_for('bank.transfer') }}" class="{{ 'is-active' if request.endpoint == 'bank.transfer' }}">Send money</a>
+      <a href="{{ url_for('bank.activity') }}" class="{{ 'is-active' if request.endpoint == 'bank.activity' }}">Activity</a>
+      {% if g.user.role == 'admin' %}
+      <a href="{{ url_for('admin.console') }}" class="{{ 'is-active' if request.endpoint.startswith('admin.') }}">Admin</a>
+      {% endif %}
+    </nav>
+    <div class="session">
+      <div class="idle-ring" title="Time until automatic sign-out">
+        <svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" class="track"/><circle cx="18" cy="18" r="15" class="fill"/></svg>
+        <span class="idle-text" aria-live="off">10:00</span>
+      </div>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-ghost btn-sm" type="submit">Lock &amp; sign out</button>
+      </form>
+    </div>
+    {% else %}
+    <nav class="nav nav-public" aria-label="Account">
+      <a href="{{ url_for('auth.login') }}">Sign in</a>
+      <a class="btn btn-brass btn-sm magnetic" href="{{ url_for('auth.register') }}">Open an account</a>
+    </nav>
+    {% endif %}
+  </header>
+
+  <div class="toasts" role="status" aria-live="polite">
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="toast toast-{{ category }}"><span class="toast-dot"></span>{{ message }}<button class="toast-x" type="button" aria-label="Dismiss">×</button></div>
+    {% endfor %}
+  </div>
+
+  <main id="main">{% block content %}{% endblock %}</main>
+
+  {% if g.user %}
+  <div class="idle-warning" hidden>
+    <p>You'll be signed out in <strong class="idle-count">60</strong> seconds to protect your account.</p>
+    <a class="btn btn-brass btn-sm" href="{{ request.path }}">Stay signed in</a>
+  </div>
+  {% endif %}
+
+  <script src="{{ url_for('static', filename='js/fx.js') }}" nonce="{{ csp_nonce() }}" defer></script>
+</body>
+</html>

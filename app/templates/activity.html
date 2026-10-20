@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Activity · SecureBank Pro{% endblock %}
+{% block body_class %}page-app{% endblock %}
+{% block content %}
+<section class="panel narrow">
+  <div class="panel-head"><h1>Activity</h1><span class="muted">Page {{ page }}</span></div>
+  {% if items %}
+  <ul class="tx-list stagger">{% for tx in items %}{% include "_activity_row.html" %}{% endfor %}</ul>
+  {% else %}
+  <p class="empty">Nothing on this page. <a href="{{ url_for('bank.activity') }}">Back to the latest</a>.</p>
+  {% endif %}
+  <nav class="pager" aria-label="Pages">
+    {% if page > 1 %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.activity', page=page-1) }}">Newer</a>{% endif %}
+    {% if has_next %}<a class="btn btn-ghost btn-sm" href="{{ url_for('bank.activity', page=page+1) }}">Older</a>{% endif %}
+  </nav>
+</section>
+{% endblock %}

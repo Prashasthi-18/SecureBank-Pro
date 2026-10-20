@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Open an account · SecureBank Pro{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+{% block content %}
+<section class="auth auth-register">
+  <form class="panel auth-form" method="post" novalidate>
+    <h1>Open an account</h1>
+    <p class="muted">You'll get a checking and a savings account, with 5,000.00 to practise with.</p>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% macro field(name, label, type='text', auto='off', max=64) %}
+    <label class="field {{ 'has-error' if errors.get(name) }}">
+      <span>{{ label }}</span>
+      <input name="{{ name }}" type="{{ type }}" autocomplete="{{ auto }}" maxlength="{{ max }}"
+             value="{{ form.get(name, '') if type != 'password' }}" required
+             {% if errors.get(name) %}aria-invalid="true" aria-describedby="err-{{ name }}"{% endif %}>
+      {% if errors.get(name) %}<small class="field-error" id="err-{{ name }}">{{ errors[name] }}</small>{% endif %}
+    </label>
+    {% endmacro %}
+    {{ field('full_name', 'Full name', auto='name', max=60) }}
+    <div class="row-2">
+      {{ field('username', 'Username', auto='username', max=24) }}
+      {{ field('email', 'Email', type='email', auto='email', max=254) }}
+    </div>
+    {{ field('password', 'Password', type='password', auto='new-password', max=128) }}
+    <div class="strength" data-strength aria-live="polite">
+      <div class="strength-bar"><i></i><i></i><i></i><i></i><i></i></div>
+      <ul class="strength-rules">
+        <li data-rule="len">12+ characters</li>
+        <li data-rule="lower">Lowercase</li>
+        <li data-rule="upper">Uppercase</li>
+        <li data-rule="digit">Number</li>
+        <li data-rule="symbol">Symbol</li>
+      </ul>
+    </div>
+    {{ field('confirm', 'Confirm password', type='password', auto='new-password', max=128) }}
+    <button class="btn btn-brass btn-block magnetic" type="submit">Open account</button>
+    <p class="muted small">Already a customer? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+  </form>
+</section>
+{% endblock %}

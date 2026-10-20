@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Send money · SecureBank Pro{% endblock %}
+{% block body_class %}page-app{% endblock %}
+{% block content %}
+<section class="transfer">
+  <form class="panel transfer-form" method="post" novalidate data-transfer data-lookup="{{ url_for('bank.lookup') }}">
+    <h1>Send money</h1>
+    {% if errors.form %}<p class="form-error" role="alert">{{ errors.form }}</p>{% endif %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+
+    <fieldset class="field {{ 'has-error' if errors.from_account }}">
+      <legend>From</legend>
+      <div class="source-pick">
+        {% for a in accounts %}
+        <label class="source">
+          <input type="radio" name="from_account" value="{{ a.id }}" data-balance="{{ a.balance_cents }}" data-kind="{{ a.kind }}"
+                 {{ 'checked' if (form.from_account == a.id|string) or (not form.from_account and loop.first) }}>
+          <span><strong>{{ a.kind|capitalize }}</strong><small>{{ money(a.balance_cents) }} available</small></span>
+        </label>
+        {% endfor %}
+      </div>
+      {% if errors.from_account %}<small class="field-error">{{ errors.from_account }}</small>{% endif %}
+    </fieldset>
+
+    <label class="field {{ 'has-error' if errors.to_account }}">
+      <span>To account number</span>
+      <input name="to_account" placeholder="SB0123456789" maxlength="12" autocomplete="off" spellcheck="false"
+             value="{{ form.to_account }}" required data-to>
+      <small class="lookup-result" data-lookup-result aria-live="polite"></small>
+      {% if errors.to_account %}<small class="field-error">{{ errors.to_account }}</small>{% endif %}
+    </label>
+
+    <label class="field {{ 'has-error' if errors.amount }}">
+      <span>Amount</span>
+      <input name="amount" inputmode="decimal" placeholder="0.00" maxlength="13" autocomplete="off"
+             value="{{ form.amount }}" required data-amount>
+      {% if errors.amount %}<small class="field-error">{{ errors.amount }}</small>{% endif %}
+    </label>
+
+    <label class="field {{ 'has-error' if errors.memo }}">
+      <span>Note for the recipient <em>(optional)</em></span>
+      <input name="memo" maxlength="80" autocomplete="off" value="{{ form.memo }}">
+      {% if errors.memo %}<small class="field-error">{{ errors.memo }}</small>{% endif %}
+    </label>
+
+    <button class="btn btn-brass btn-block hold" type="submit" data-hold>
+      <span class="hold-fill" aria-hidden="true"></span>
+      <span class="hold-label">Hold to send</span>
+    </button>
+    <p class="muted small">Press and hold for one second. This stops accidental double taps from sending money.</p>
+  </form>
+
+  <aside class="preview" aria-hidden="true">
+    <div class="preview-card preview-from"><small>From</small><strong data-pv-from>Checking</strong></div>
+    <svg class="preview-path" viewBox="0 0 100 260" preserveAspectRatio="none">
+      <path d="M50 0 C 10 80, 90 180, 50 260" />
+    </svg>
+    <p class="preview-amount odometer" data-pv-amount>0.00</p>
+    <div class="preview-card preview-to"><small>To</small><strong data-pv-to>Enter an account number</strong></div>
+  </aside>
+</section>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Overview · SecureBank Pro{% endblock %}
+{% block body_class %}page-app{% endblock %}
+{% block content %}
+{% if intro %}
+<div class="intro" data-intro aria-hidden="true">
+  {% with vault_class='vault-intro' %}{% include "_vault.html" %}{% endwith %}
+</div>
+{% endif %}
+
+<section class="overview">
+  <div class="overview-head">
+    <p class="greet">Good to see you, {{ g.user.full_name.split()[0] }}.</p>
+    <p class="total-label">Total across your accounts</p>
+    <p class="total odometer" data-odometer="{{ total }}" aria-label="{{ money(total) }}">{{ money(total) }}</p>
+    <svg class="spark" data-history="{{ history }}" viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label="Balance trend over your recent activity"></svg>
+  </div>
+
+  <div class="cards">
+    {% for a in accounts %}
+    <article class="bank-card tilt {{ 'bank-card-' ~ a.kind }}">
+      <div class="shine" aria-hidden="true"></div>
+      <header><span class="chip" aria-hidden="true"></span><span class="kind">{{ a.kind|capitalize }}</span></header>
+      <p class="card-balance odometer" data-odometer="{{ a.balance_cents }}">{{ money(a.balance_cents) }}</p>
+      <footer>
+        <span class="acct">{{ a.account_number[:2] }} {{ a.account_number[2:6] }} {{ a.account_number[6:] }}</span>
+        <button class="copy" type="button" data-copy="{{ a.account_number }}">Copy number</button>
+      </footer>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="split">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Recent activity</h2>
+      <a href="{{ url_for('bank.activity') }}">See all</a>
+    </div>
+    {% if activity %}
+    <ul class="tx-list stagger">
+      {% for tx in activity %}{% include "_activity_row.html" %}{% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">No activity yet. <a href="{{ url_for('bank.transfer') }}">Send your first transfer</a>.</p>
+    {% endif %}
+  </div>
+  <aside class="panel quick">
+    <h2>Move money</h2>
+    <p class="muted">Send to anyone with a SecureBank number, or shift money into savings.</p>
+    <a class="btn btn-brass btn-block magnetic" href="{{ url_for('bank.transfer') }}">Send money</a>
+    <dl class="limits">
+      <div><dt>Per transfer</dt><dd>{{ money(config.MAX_TRANSFER_CENTS) }}</dd></div>
+      <div><dt>Per day, to others</dt><dd>{{ money(config.DAILY_TRANSFER_LIMIT_CENTS) }}</dd></div>
+      <div><dt>Last sign-in</dt><dd>{{ (g.user.last_login_at or '')[:16]|replace('T', ' ') }} UTC</dd></div>
+    </dl>
+  </aside>
+</section>
+{% endblock %}
